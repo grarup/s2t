@@ -1,0 +1,3 @@
+[submodule "json-maker"]
+	path = json-maker
+	url = https://github.com/rafagafe/json-maker.git
