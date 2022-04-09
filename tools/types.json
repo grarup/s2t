@@ -1,0 +1,46 @@
+{
+  "types": [
+    {
+      "enum": "types_u8",
+      "names": [
+        "unsigned char",
+        "uint8_t"
+      ]
+    },
+    {
+      "enum": "types_u16",
+      "names": [
+        "unsigned short",
+        "uint16_t"
+      ]
+    },
+    {
+      "enum": "types_u32",
+      "names": [
+        "unsigned int",
+        "uint32_t"
+      ]
+    },
+    {
+      "enum": "types_i8",
+      "names": [
+        "char",
+        "int8_t"
+      ]
+    },
+    {
+      "enum": "types_i16",
+      "names": [
+        "short",
+        "int16_t"
+      ]
+    },
+    {
+      "enum": "types_i32",
+      "names": [
+        "int",
+        "uint32_t"
+      ]
+    }
+  ]
+}

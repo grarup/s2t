@@ -1,0 +1,39 @@
+import os
+import pathlib
+
+
+env = Environment(
+    tools=("gcc", "g++", "gnulink", "ar", "as"),
+    CC="C:/DGSTC/MINGW32/bin/gcc",
+    ENV=os.environ,
+)
+
+
+paths = [
+    ".",
+    "../src",
+    "output",
+    "structs",
+    "../json-maker/src/include/json-maker",
+    "../json-maker/src"
+]
+
+
+allPaths = []
+
+for path in paths:
+    if path.endswith("**"):
+        for newPath in [x[0] for x in os.walk(path[:-2])]:
+            allPaths.append(newPath)
+    else:
+        allPaths.append(path)
+env.Append(CPPPATH=allPaths)
+
+sources = []
+
+for path in allPaths:
+    for file in pathlib.Path(path).glob("*.c"):
+        sources.append(str(file))
+
+
+env.Program(target="test.exe", source=sources)
