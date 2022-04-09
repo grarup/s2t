@@ -12,6 +12,7 @@ typedef enum types
   types_i16,
   types_i32,
   types_sz,
+  types_char,
   types_struct,
   types_typeMask   = 0x3FFFFFFF,
   types_multiArray = 0x40000000,

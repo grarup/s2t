@@ -32,7 +32,7 @@ int main()
   json_struct(json, &length, (unsigned char *)&pointer, &simple_point_body);
   printf("%s\n", json);
 
-  array_t array = {8, {1, 2, 3}, {1, 2, 3, 4, 50}, {17, 47}, {{7, 2}, {3, 4}, {5, 6}}};
+  array_t array = {8, {1, 2, 3}, {1, 2, 3, 4, 50}, {17, 47}, {{7, 2}, {3, 4}, {5, 6}}, {'S', 'i', 'g', 'r', 'i', 'd', 0}};
   length        = 1000;
   json_struct(json, &length, (unsigned char *)&array, &array_body);
   printf("%s\n", json);

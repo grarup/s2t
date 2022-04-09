@@ -8,6 +8,7 @@ typedef struct array
   unsigned short u16[5];
   unsigned int   u32[2];
   unsigned int   m_u32[3][2];
+  char           string[32];
 } array_t;
 
 #endif

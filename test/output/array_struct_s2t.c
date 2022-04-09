@@ -16,11 +16,12 @@ structMember_t array_members[] = {
 	{"u16", types_u16, offsetof(struct array, u16), .count = 5, NULL},
 	{"u32", types_u32, offsetof(struct array, u32), .count = 2, NULL},
 	{"m_u32", types_u32 | types_multiArray, offsetof(struct array, m_u32), .multi = &m_u32_multiArray, NULL},
+	{"string", types_char, offsetof(struct array, string), .count = 32, NULL},
 };
 
 structBody_t array_body = {
 	"array",
-	5,
+	6,
 	sizeof(struct array),
 	array_members,
 };

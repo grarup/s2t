@@ -5,7 +5,7 @@ structMember_t simple_nest_members[] = {
 	{"u8", types_u8, offsetof(struct simple_nest, u8), .count = 0, NULL},
 	{"u16", types_u16, offsetof(struct simple_nest, u16), .count = 0, NULL},
 	{"u32", types_u32, offsetof(struct simple_nest, u32), .count = 0, NULL},
-	{"i8", types_i8, offsetof(struct simple_nest, i8), .count = 0, NULL},
+	{"i8", types_char, offsetof(struct simple_nest, i8), .count = 0, NULL},
 	{"i16", types_i16, offsetof(struct simple_nest, i16), .count = 0, NULL},
 	{"i32", types_i32, offsetof(struct simple_nest, i32), .count = 0, NULL},
 };

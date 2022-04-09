@@ -34,6 +34,9 @@ char * json_member(char * target, unsigned int * targetMaxLength, char * name, u
     case types_i32:
       target = json_int(target, name, *((int *)valuePointer), targetMaxLength);
       break;
+    case types_char:
+      target = json_nstr(target, name, valuePointer, 1, targetMaxLength);
+      break;
     case types_sz:
       target = json_str(target, name, valuePointer, targetMaxLength);
       break;
@@ -49,6 +52,12 @@ char * json_member(char * target, unsigned int * targetMaxLength, char * name, u
 
 static char * json_array(char * target, unsigned int * targetMaxLength, char * name, unsigned char ** data, int count, types_t type, void * child)
 {
+  if (type == types_char)
+  {
+    target = json_nstr(target, name, *data, count, targetMaxLength);
+    *data  = (unsigned char *)(*data + count);
+    return target;
+  }
   target = json_arrOpen(target, name, targetMaxLength);
   for (int i = 0; i < count; i++)
   {

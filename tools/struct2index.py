@@ -66,7 +66,7 @@ def get_structs(fileName: str, types: Types) -> typing.List[StructBody]:
                 structMember.type = type.enum
 
             if (entry[1] != ''):
-                if (structMember.type == 'types_i8'):
+                if (structMember.type == 'types_char'):
                     structMember.type = 'types_sz'
                 structMember.type += ' | types_pointer' if entry[1] != '' else ''
 

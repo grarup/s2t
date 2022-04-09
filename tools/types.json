@@ -24,7 +24,6 @@
     {
       "enum": "types_i8",
       "names": [
-        "char",
         "int8_t"
       ]
     },
@@ -40,6 +39,13 @@
       "names": [
         "int",
         "uint32_t"
+      ]
+    },
+    {
+      "enum": "types_char",
+      "names": [
+        "char",
+        "char_t"
       ]
     }
   ]
