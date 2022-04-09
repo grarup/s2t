@@ -4,6 +4,7 @@
 
 typedef enum types
 {
+  types_null,
   types_u8,
   types_u16,
   types_u32,
@@ -17,22 +18,35 @@ typedef enum types
   types_pointer    = 0x80000000
 } types_t;
 
+typedef struct structMulitArray
+{
+  unsigned int   count;
+  unsigned int * lengths;
+} structMulitArray_t;
+
+struct structBody;
+
 typedef struct structMember
 {
   char *       name;
   types_t      type;
   unsigned int offset;
-  unsigned int count;
-  void *       child;
+  union
+  {
+    unsigned int         count;
+    structMulitArray_t * multi;
+  };
+  struct structBody * child;
 } structMember_t;
 
 typedef struct structBody
 {
   char *                 name;
-  int                    count;
+  unsigned int           count;
+  unsigned int           size;
   const structMember_t * members;
 } structBody_t;
 
-char * copyStr(char * target, char * source, unsigned int * maxLength);
+unsigned int getSize(types_t type, structBody_t * child);
 
 #endif

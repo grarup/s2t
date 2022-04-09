@@ -4,72 +4,64 @@
 
 char * json_member(char * target, unsigned int * targetMaxLength, char * name, unsigned char * data, types_t type, void * child)
 {
+  unsigned char * valuePointer = data;
+  if (type & types_pointer)
+  {
+    if ((unsigned char *)*((unsigned int *)valuePointer) == NULL)
+    {
+      type = types_pointer;
+    }
+    valuePointer = (unsigned char *)*((unsigned int *)valuePointer);
+  }
+
   switch (type & types_typeMask)
   {
     case types_u8:
-      target = json_uint(target, name, *data, targetMaxLength);
+      target = json_uint(target, name, *valuePointer, targetMaxLength);
       break;
     case types_u16:
-      target = json_uint(target, name, *((unsigned short *)data), targetMaxLength);
+      target = json_uint(target, name, *((unsigned short *)valuePointer), targetMaxLength);
       break;
     case types_u32:
-      target = json_uint(target, name, *((unsigned int *)data), targetMaxLength);
+      target = json_uint(target, name, *((unsigned int *)valuePointer), targetMaxLength);
       break;
     case types_i8:
-      target = json_int(target, name, *((char *)data), targetMaxLength);
+      target = json_int(target, name, *((char *)valuePointer), targetMaxLength);
       break;
     case types_i16:
-      target = json_int(target, name, *((short *)data), targetMaxLength);
+      target = json_int(target, name, *((short *)valuePointer), targetMaxLength);
       break;
     case types_i32:
-      target = json_int(target, name, *((int *)data), targetMaxLength);
+      target = json_int(target, name, *((int *)valuePointer), targetMaxLength);
       break;
     case types_sz:
-      target = json_str(target, name, data, targetMaxLength);
+      target = json_str(target, name, valuePointer, targetMaxLength);
       break;
     case types_struct:
-      target = json_struct(target, targetMaxLength, data, child);
+      target = json_struct(target, targetMaxLength, valuePointer, child);
       break;
     default:
+      target = json_null(target, name, targetMaxLength);
       break;
   }
   return target;
 }
 
-static char * json_array(char * target, unsigned int * targetMaxLength, char * name, unsigned char * arrayPointer, int count, types_t type, void * child)
+static char * json_array(char * target, unsigned int * targetMaxLength, char * name, unsigned char ** data, int count, types_t type, void * child)
 {
   target = json_arrOpen(target, name, targetMaxLength);
   for (int i = 0; i < count; i++)
   {
-    printf("arrayPoint %x, %i\n", arrayPointer, type);
-    target = json_member(target, targetMaxLength, NULL, arrayPointer, type, child);
-    switch (type)
-    {
-      case types_i8:
-      case types_u8:
-        arrayPointer = (unsigned char *)(arrayPointer + 1);
-        break;
-      case types_i16:
-      case types_u16:
-        arrayPointer = (unsigned char *)(arrayPointer + 2);
-        break;
-      case types_i32:
-      case types_u32:
-      case types_sz:
-        arrayPointer = (unsigned char *)(arrayPointer + 4);
-        break;
-
-      default:
-        break;
-    }
+    target            = json_member(target, targetMaxLength, NULL, *data, type, child);
+    unsigned int size = getSize(type, child);
+    *data             = (unsigned char *)(*data + size);
   }
   target = json_arrClose(target, targetMaxLength);
   return target;
 }
 
-char * json_multi_array(char * target, unsigned int * targetMaxLength, char * name, unsigned char * arrayPointer, int count, types_t type, void * child, unsigned int * arrayDim)
+char * json_multi_array(char * target, unsigned int * targetMaxLength, char * name, unsigned char ** arrayPointer, int count, types_t type, void * child, unsigned int * arrayDim)
 {
-  printf("type %i\n", type);
   if (count == 1)
   {
     target = json_array(target, targetMaxLength, NULL, arrayPointer, *arrayDim, type, child);
@@ -91,29 +83,21 @@ char * json_struct(char * target, unsigned int * targetMaxLength, unsigned char 
 {
   unsigned char * basePointer = structPointer;
   target                      = json_objOpen(target, structBody->name, targetMaxLength);
+  unsigned char * data        = structPointer;
   for (unsigned int i = 0; i < structBody->count; i++)
   {
     structMember_t * member = (structMember_t *)&structBody->members[i];
     unsigned char *  data   = (unsigned char *)(basePointer + member->offset);
     if (member->type & types_multiArray)
     {
-      target = json_multi_array(target, targetMaxLength, member->name, data, member->count, member->type & types_typeMask, NULL, member->child);
+      target = json_multi_array(target, targetMaxLength, member->name, &data, member->multi->count, member->type & types_typeMask, NULL, member->multi->lengths);
     }
     else if (member->count > 0)
     {
-      target = json_array(target, targetMaxLength, member->name, data, member->count, member->type, member->child);
+      target = json_array(target, targetMaxLength, member->name, &data, member->count, member->type, member->child);
     }
     else
     {
-      if (member->type & types_pointer)
-      {
-        if ((unsigned char *)*((unsigned int *)data) == NULL)
-        {
-          target = json_null(target, member->name, targetMaxLength);
-          continue;
-        }
-        data = (unsigned char *)*((unsigned int *)data);
-      }
       target = json_member(target, targetMaxLength, member->name, data, member->type, member->child);
     }
   }

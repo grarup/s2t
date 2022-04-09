@@ -83,7 +83,6 @@ def get_structs(fileName: str, types: Types) -> typing.List[StructBody]:
                 structMember.name = re.findall("([^\[]*)", entry[2])[0]
                 structMember.arrayLengths.extend(countstr)
                 structMember.type += ' | types_multiArray'
-                structMember.child = f"{structMember.name}_multiArrayLengths"
 
             structBody.members.append(structMember)
             structBody.count += 1
@@ -105,15 +104,27 @@ def convert(file_name: str, types: Types, outputFolder: str = None):
                 c_content += f"unsigned int {structMember.name}_multiArrayLengths[] = {{\n"
                 c_content += f"\t{','.join(structMember.arrayLengths)}\n"
                 c_content += "};\n\n"
+                c_content += f"structMulitArray_t {structMember.name}_multiArray = {{\n"
+                c_content += f"\t{len(structMember.arrayLengths)},\n"
+                c_content += f"\t{structMember.name}_multiArrayLengths\n"
+                c_content += "};\n\n"
 
         c_content += f"structMember_t {structBody.name}_members[] = {{\n"
         for structMember in structBody.members:
-            c_content += f"\t{{\"{structMember.name}\", {structMember.type}, offsetof(struct {structBody.name}, {structMember.name}), {structMember.count}, {structMember.child}}},\n"
+            c_content += f"\t{{\"{structMember.name}\", "
+            c_content += f"{structMember.type}, "
+            c_content += f"offsetof(struct {structBody.name}, {structMember.name}), "
+            if (len(structMember.arrayLengths) > 0):
+                c_content += f".multi = &{structMember.name}_multiArray, "
+            else:
+                c_content += f".count = {structMember.count}, "
+            c_content += f"{structMember.child}}},\n"
         c_content += "};\n\n"
         h_content += f"extern structBody_t {structBody.name}_body;\n"
         c_content += f"structBody_t {structBody.name}_body = {{\n"
         c_content += f"\t\"{structBody.name}\",\n"
         c_content += f"\t{structBody.count},\n"
+        c_content += f"\tsizeof(struct {structBody.name}),\n"
         c_content += f"\t{structBody.name}_members,\n"
         c_content += "};\n\n"
     h_content += "\n#endif\n"
