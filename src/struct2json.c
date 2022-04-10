@@ -34,6 +34,12 @@ char * json_member(char * target, unsigned int * targetMaxLength, char * name, u
     case types_i32:
       target = json_int(target, name, *((int *)valuePointer), targetMaxLength);
       break;
+    case types_f32:
+      target = json_double(target, name, *((float *)valuePointer), targetMaxLength);
+      break;
+    case types_f64:
+      target = json_double(target, name, *((double *)valuePointer), targetMaxLength);
+      break;
     case types_char:
       target = json_nstr(target, name, valuePointer, 1, targetMaxLength);
       break;

@@ -11,6 +11,8 @@ typedef enum types
   types_i8,
   types_i16,
   types_i32,
+  types_f32,
+  types_f64,
   types_sz,
   types_char,
   types_struct,

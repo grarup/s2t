@@ -8,7 +8,6 @@ typedef struct simple_nest
   unsigned char  u8;
   unsigned short u16;
   unsigned int   u32;
-  char           i8;
   short          i16;
   int            i32;
 } simple_nest_t;

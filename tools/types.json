@@ -42,6 +42,20 @@
       ]
     },
     {
+      "enum": "types_f32",
+      "names": [
+        "float",
+        "float_t"
+      ]
+    },
+    {
+      "enum": "types_f64",
+      "names": [
+        "double",
+        "double_t"
+      ]
+    },
+    {
       "enum": "types_char",
       "names": [
         "char",

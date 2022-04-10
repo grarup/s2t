@@ -9,15 +9,15 @@ unsigned int getSize(types_t type, structBody_t * child)
     case types_i8:
     case types_u8:
       return 1;
-      break;
     case types_i16:
     case types_u16:
       return 2;
-      break;
     case types_i32:
     case types_u32:
+    case types_f32:
       return 4;
-      break;
+    case types_f64:
+      return 8;
     case types_struct:
       return child->size;
     default:
