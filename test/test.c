@@ -8,54 +8,74 @@
 #include "output/pointer_struct_s2t.h"
 #include "structs/array_struct.h"
 #include "output/array_struct_s2t.h"
+#include "structs/very_simple_struct.h"
+#include "output/very_simple_struct_s2t.h"
 #include "../src/struct2json.h"
+#include "../src/json2struct.h"
 #include "json-maker.h"
+#include "string.h"
+
+void test_struct(unsigned char * filledStructPointer, unsigned char * emptyStructPointer, structBody_t * body)
+{
+  char   text[1000];
+  int    length = sizeof(text);
+  char * json   = text;
+
+  json = json_struct(json, &length, filledStructPointer, body, NULL);
+  json = json_end(json, &length);
+
+  printf("struct to json\n");
+  printf("%s\n\n", text);
+
+  json   = text;
+  length = sizeof(text);
+  json   = read_struct(json, &length, emptyStructPointer, body);
+
+  json   = text;
+  length = sizeof(text);
+  json   = json_struct(json, &length, emptyStructPointer, body, NULL);
+  json   = json_end(json, &length);
+
+  printf("struct to json to struct to json\n");
+  printf("%s\n\n", text);
+}
 
 int main()
 {
-  int    length = 1000;
-  char   text[1000];
-  char * json = text;
+
+  very_simple_t very_simple = {8, 16, 32};
+  very_simple_t very_simple_empty;
+
+  test_struct((unsigned char *)&very_simple, (unsigned char *)&very_simple_empty, &very_simple_body);
 
   simple_t simple = {8, 16, 32, -8, -16, -32, 'p', 3.14f, 2.27, 8};
+  simple_t simple_empty;
 
-  json = json_objOpen(json, NULL, &length);
-  json = json_struct(json, &length, (unsigned char *)&simple, &simple_body);
-  json = json_end(json, &length);
-
-  printf("%s\n\n", text);
+  test_struct((unsigned char *)&simple, (unsigned char *)&simple_empty, &simple_body);
 
   nest_t nest = {8, {8, 16, 32, -16, -32}};
-  length      = 1000;
-  json        = text;
-
-  json = json_objOpen(json, NULL, &length);
-  json = json_struct(json, &length, (unsigned char *)&nest, &nest_body);
-  json = json_end(json, &length);
-
-  printf("%s\n\n", text);
+  nest_t nest_empty;
+  test_struct((unsigned char *)&nest, (unsigned char *)&nest_empty, &nest_body);
 
   char           string[] = "Peter";
   unsigned short s        = 50;
   int            i        = 100;
   simple_point_t pointer  = {string, NULL, &i, 200};
-  length                  = 1000;
-  json                    = text;
+  simple_point_t pointer_empty;
+  unsigned short s_empty = 2;
+  int            i_empty = 3;
 
-  json = json_objOpen(json, NULL, &length);
-  json = json_struct(json, &length, (unsigned char *)&pointer, &simple_point_body);
-  json = json_end(json, &length);
-
-  printf("%s\n\n", text);
+  memset(&pointer_empty, 0, sizeof(simple_point_t));
+  char string_empty[10];
+  pointer_empty.szString = string_empty;
+  pointer_empty.pu16     = &s_empty;
+  pointer_empty.pi32     = &i_empty;
+  test_struct((unsigned char *)&pointer, (unsigned char *)&pointer_empty, &simple_point_body);
 
   array_t array = {8, {1, 2, 3}, {1, 2, 3, 4, 50}, {17, 47}, {{7, 2}, {3, 4}, {5, 6}}, {'S', 'i', 'g', 'r', 'i', 'd', 0}};
-  length        = 1000;
-  json          = text;
-
-  json = json_objOpen(json, NULL, &length);
-  json = json_struct(json, &length, (unsigned char *)&array, &array_body);
-  json = json_end(json, &length);
-  printf("%s\n", text);
+  array_t array_empty;
+  memset(&array_empty, 0, sizeof(array_t));
+  test_struct((unsigned char *)&array, (unsigned char *)&array_empty, &array_body);
 
   return 0;
 }

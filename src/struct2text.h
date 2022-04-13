@@ -16,7 +16,8 @@ typedef enum types
   types_sz,
   types_char,
   types_struct,
-  types_typeMask   = 0x3FFFFFFF,
+  types_typeMask   = 0x1FFFFFFF,
+  types_array      = 0x20000000,
   types_multiArray = 0x40000000,
   types_pointer    = 0x80000000
 } types_t;
@@ -50,6 +51,7 @@ typedef struct structBody
   const structMember_t * members;
 } structBody_t;
 
-unsigned int getSize(types_t type, structBody_t * child);
+unsigned int           getSize(types_t type, structBody_t * child);
+const structMember_t * getMember(structBody_t * body, char * name);
 
 #endif

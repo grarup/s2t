@@ -1,4 +1,6 @@
 #include "struct2text.h"
+#include "stddef.h"
+#include "string.h"
 
 unsigned int getSize(types_t type, structBody_t * child)
 {
@@ -24,4 +26,14 @@ unsigned int getSize(types_t type, structBody_t * child)
       break;
   }
   return 0;
+}
+
+const structMember_t * getMember(structBody_t * body, char * name)
+{
+  for (unsigned int i = 0; i < body->count; i++)
+  {
+    if (strcmp(name, body->members[i].name) == 0)
+      return &body->members[i];
+  }
+  return NULL;
 }

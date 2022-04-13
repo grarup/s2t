@@ -4,6 +4,6 @@
 
 #include "struct2text.h"
 
-char * json_struct(char * target, unsigned int * targetMaxLength, unsigned char * structPointer, structBody_t * structBody);
+char * json_struct(char * target, unsigned int * targetMaxLength, unsigned char * structPointer, structBody_t * structBody, char * name);
 
 #endif

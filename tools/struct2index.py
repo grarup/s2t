@@ -77,6 +77,7 @@ def get_structs(fileName: str, types: Types) -> typing.List[StructBody]:
                 countstr = re.findall("\[(.*)\]", entry[2])
                 structMember.count = int(countstr[0])
                 structMember.name = re.findall("([^\[]*)", entry[2])[0]
+                structMember.type += ' | types_array'
             else:
                 countstr = re.findall("\[([^\[]*)\]", entry[2])
                 structMember.count = len(countstr)

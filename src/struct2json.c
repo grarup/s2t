@@ -47,7 +47,7 @@ char * json_member(char * target, unsigned int * targetMaxLength, char * name, u
       target = json_str(target, name, valuePointer, targetMaxLength);
       break;
     case types_struct:
-      target = json_struct(target, targetMaxLength, valuePointer, child);
+      target = json_struct(target, targetMaxLength, valuePointer, child, name);
       break;
     default:
       target = json_null(target, name, targetMaxLength);
@@ -58,7 +58,7 @@ char * json_member(char * target, unsigned int * targetMaxLength, char * name, u
 
 static char * json_array(char * target, unsigned int * targetMaxLength, char * name, unsigned char ** data, int count, types_t type, void * child)
 {
-  if (type == types_char)
+  if ((type & types_typeMask) == types_char)
   {
     target = json_nstr(target, name, *data, count, targetMaxLength);
     *data  = (unsigned char *)(*data + count);
@@ -94,10 +94,10 @@ char * json_multi_array(char * target, unsigned int * targetMaxLength, char * na
   return target;
 }
 
-char * json_struct(char * target, unsigned int * targetMaxLength, unsigned char * structPointer, structBody_t * structBody)
+char * json_struct(char * target, unsigned int * targetMaxLength, unsigned char * structPointer, structBody_t * structBody, char * name)
 {
   unsigned char * basePointer = structPointer;
-  target                      = json_objOpen(target, structBody->name, targetMaxLength);
+  target                      = json_objOpen(target, name, targetMaxLength);
   unsigned char * data        = structPointer;
   for (unsigned int i = 0; i < structBody->count; i++)
   {
@@ -107,7 +107,7 @@ char * json_struct(char * target, unsigned int * targetMaxLength, unsigned char 
     {
       target = json_multi_array(target, targetMaxLength, member->name, &data, member->multi->count, member->type & types_typeMask, NULL, member->multi->lengths);
     }
-    else if (member->count > 0)
+    else if (member->type & types_array)
     {
       target = json_array(target, targetMaxLength, member->name, &data, member->count, member->type, member->child);
     }
