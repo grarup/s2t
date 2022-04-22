@@ -17,4 +17,9 @@ typedef struct simple
   unsigned char  u8check;
 } simple_t;
 
+typedef struct simple_not_used
+{
+  unsigned char u8;
+} simple_not_used_t;
+
 #endif

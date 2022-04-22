@@ -3,7 +3,6 @@
 
 #include "struct2text.h"
 
-char * read_start(char * source, unsigned int * maxLength);
-char * read_struct(char * source, unsigned int * maxLength, unsigned char * structPointer, structBody_t * structBody);
+char * read_struct_from_json(char * source, unsigned int * maxLength, unsigned char * structPointer, structBody_t * structBody);
 
 #endif

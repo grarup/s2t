@@ -12,30 +12,18 @@ env = Environment(
 paths = [
     ".",
     "../src",
-    "output",
-    "structs",
     "../json-maker/src/include/json-maker",
     "../json-maker/src/include",
     "../json-maker/src"
 ]
 
 
-allPaths = []
-
-for path in paths:
-    if path.endswith("**"):
-        for newPath in [x[0] for x in os.walk(path[:-2])]:
-            allPaths.append(newPath)
-    else:
-        allPaths.append(path)
-env.Append(CPPPATH=allPaths)
+env.Append(CPPPATH=paths)
 
 sources = []
 
-for path in allPaths:
+for path in paths:
     for file in pathlib.Path(path).glob("*.c"):
         sources.append(str(file))
-
-#Default(env.Command(file to create, file depended on, command))
 
 env.Program(target="test.exe", source=sources)

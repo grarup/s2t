@@ -1,5 +1,5 @@
-#include "pointer_struct_s2t.h"
 #include "stddef.h"
+#include "pointer_struct_s2t.h"
 
 structMember_t simple_point_members[] = {
 	{"szString", types_sz | types_pointer, offsetof(struct simple_point, szString), .count = 0, NULL},

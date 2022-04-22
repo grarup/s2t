@@ -1,5 +1,5 @@
-#include "simple_struct_s2t.h"
 #include "stddef.h"
+#include "simple_struct_s2t.h"
 
 structMember_t simple_members[] = {
 	{"u8", types_u8, offsetof(struct simple, u8), .count = 0, NULL},
@@ -19,5 +19,16 @@ structBody_t simple_body = {
 	10,
 	sizeof(struct simple),
 	simple_members,
+};
+
+structMember_t simple_not_used_members[] = {
+	{"u8", types_u8, offsetof(struct simple_not_used, u8), .count = 0, NULL},
+};
+
+structBody_t simple_not_used_body = {
+	"simple_not_used",
+	1,
+	sizeof(struct simple_not_used),
+	simple_not_used_members,
 };
 

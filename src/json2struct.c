@@ -1,9 +1,8 @@
 #include "json2struct.h"
 #include "string.h"
 #include "stdlib.h"
-#include "stdio.h" //TODO remove
 
-char * move_past(char * source, unsigned int * maxLength, char c)
+static char * move_past(char * source, unsigned int * maxLength, char c)
 {
   while (maxLength > 0 && *source != c)
   {
@@ -14,17 +13,17 @@ char * move_past(char * source, unsigned int * maxLength, char c)
   return source + 1;
 }
 
-inline char * read_start(char * source, unsigned int * maxLength)
+static inline char * read_start(char * source, unsigned int * maxLength)
 {
   return move_past(source, maxLength, '{');
 }
 
-char * move_past_divider(char * source, unsigned int * maxLength)
+static inline char * move_past_divider(char * source, unsigned int * maxLength)
 {
   return move_past(source, maxLength, ':');
 }
 
-char * move_past_end(char * source, unsigned int * maxLength)
+static char * move_past_end(char * source, unsigned int * maxLength)
 {
   int braced_count = 0;
   while (*maxLength > 1 && (braced_count > 0 || !(*source == ',' || *source == '}')))
@@ -40,12 +39,12 @@ char * move_past_end(char * source, unsigned int * maxLength)
   return source + 1;
 }
 
-char * strnchr(char * src, unsigned int maxLength, char c)
+static char * strnchr(char * src, unsigned int maxLength, char c)
 {
   return strchr(src, c);
 }
 
-unsigned char * get_string(unsigned char * source, unsigned int * maxLenght, char ** string)
+static unsigned char * get_string(unsigned char * source, unsigned int * maxLenght, char ** string)
 {
   // TOOD make i handle escaped "
   *string = strnchr(source, *maxLenght, '"');
@@ -61,7 +60,7 @@ unsigned char * get_string(unsigned char * source, unsigned int * maxLenght, cha
   return source;
 }
 
-unsigned char * get_value_string(unsigned char * source, unsigned int * maxLenght, char ** string)
+static unsigned char * get_value_string(unsigned char * source, unsigned int * maxLenght, char ** string)
 {
   char * end = source;
   while (*maxLenght > 0 && !(*end == ',' || *end == '}' || *end == ']'))
@@ -74,7 +73,7 @@ unsigned char * get_value_string(unsigned char * source, unsigned int * maxLengh
   return end + 1;
 }
 
-unsigned char * read_value(unsigned char * source, unsigned int * maxLength, unsigned char * structPointer, types_t type, structBody_t * child)
+static unsigned char * read_value(unsigned char * source, unsigned int * maxLength, unsigned char * structPointer, types_t type, structBody_t * child)
 {
   char * szValue;
   // printf("type %i\n", type);
@@ -175,7 +174,7 @@ unsigned char * read_value(unsigned char * source, unsigned int * maxLength, uns
       }
       break;
     case types_struct:
-      source = read_struct(source, maxLength, structPointer, child);
+      source = read_struct_from_json(source, maxLength, structPointer, child);
       break;
     default:
       break;
@@ -183,7 +182,7 @@ unsigned char * read_value(unsigned char * source, unsigned int * maxLength, uns
   return source;
 }
 
-unsigned char * read_array(unsigned char * source, unsigned int * maxLength, unsigned char ** structPointer, unsigned int count, types_t type, structBody_t * child)
+static unsigned char * read_array(unsigned char * source, unsigned int * maxLength, unsigned char ** structPointer, unsigned int count, types_t type, structBody_t * child)
 {
   if ((type & types_typeMask) == types_char)
   {
@@ -202,7 +201,7 @@ unsigned char * read_array(unsigned char * source, unsigned int * maxLength, uns
   return source;
 }
 
-unsigned char * read_multiArray(unsigned char * source, unsigned int * maxLength, unsigned char ** structPointer, unsigned int * multiArray, unsigned int index, types_t type, structBody_t * child)
+static unsigned char * read_multiArray(unsigned char * source, unsigned int * maxLength, unsigned char ** structPointer, unsigned int * multiArray, unsigned int index, types_t type, structBody_t * child)
 {
   if (index == 1)
   {
@@ -219,7 +218,7 @@ unsigned char * read_multiArray(unsigned char * source, unsigned int * maxLength
   }
 }
 
-char * read_struct(char * source, unsigned int * maxLength, unsigned char * structPointer, structBody_t * structBody)
+char * read_struct_from_json(char * source, unsigned int * maxLength, unsigned char * structPointer, structBody_t * structBody)
 {
   char * name;
   source = read_start(source, maxLength);

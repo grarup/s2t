@@ -1,0 +1,1 @@
+ python.exe ..\tools\struct2text.py example1.h -t ..\tools\types.json -o . -f . 

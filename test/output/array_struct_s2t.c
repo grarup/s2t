@@ -1,5 +1,5 @@
-#include "array_struct_s2t.h"
 #include "stddef.h"
+#include "array_struct_s2t.h"
 
 unsigned int m_u32_multiArrayLengths[] = {
 	3,2

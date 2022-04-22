@@ -15,7 +15,7 @@
 #include "json-maker.h"
 #include "string.h"
 
-void test_struct(unsigned char * filledStructPointer, unsigned char * emptyStructPointer, structBody_t * body)
+void test_struct(char * name, unsigned char * filledStructPointer, unsigned char * emptyStructPointer, structBody_t * body)
 {
   char   text[1000];
   int    length = sizeof(text);
@@ -23,13 +23,13 @@ void test_struct(unsigned char * filledStructPointer, unsigned char * emptyStruc
 
   json = json_struct(json, &length, filledStructPointer, body, NULL);
   json = json_end(json, &length);
-
+  printf("%s\n", name);
   printf("struct to json\n");
   printf("%s\n\n", text);
 
   json   = text;
   length = sizeof(text);
-  json   = read_struct(json, &length, emptyStructPointer, body);
+  json   = read_struct_from_json(json, &length, emptyStructPointer, body);
 
   json   = text;
   length = sizeof(text);
@@ -46,16 +46,16 @@ int main()
   very_simple_t very_simple = {8, 16, 32};
   very_simple_t very_simple_empty;
 
-  test_struct((unsigned char *)&very_simple, (unsigned char *)&very_simple_empty, &very_simple_body);
+  test_struct("very_simple", (unsigned char *)&very_simple, (unsigned char *)&very_simple_empty, &very_simple_body);
 
   simple_t simple = {8, 16, 32, -8, -16, -32, 'p', 3.14f, 2.27, 8};
   simple_t simple_empty;
 
-  test_struct((unsigned char *)&simple, (unsigned char *)&simple_empty, &simple_body);
+  test_struct("simple", (unsigned char *)&simple, (unsigned char *)&simple_empty, &simple_body);
 
-  nest_t nest = {8, {8, 16, 32, -16, -32}};
+  nest_t nest = {8, {8, 16, 32, -16, -32, 32, 'c', 32.1f, 64.5, 8}};
   nest_t nest_empty;
-  test_struct((unsigned char *)&nest, (unsigned char *)&nest_empty, &nest_body);
+  test_struct("nest", (unsigned char *)&nest, (unsigned char *)&nest_empty, &nest_body);
 
   char           string[] = "Peter";
   unsigned short s        = 50;
@@ -70,12 +70,12 @@ int main()
   pointer_empty.szString = string_empty;
   pointer_empty.pu16     = &s_empty;
   pointer_empty.pi32     = &i_empty;
-  test_struct((unsigned char *)&pointer, (unsigned char *)&pointer_empty, &simple_point_body);
+  test_struct("pointer", (unsigned char *)&pointer, (unsigned char *)&pointer_empty, &simple_point_body);
 
-  array_t array = {8, {1, 2, 3}, {1, 2, 3, 4, 50}, {17, 47}, {{7, 2}, {3, 4}, {5, 6}}, {'S', 'i', 'g', 'r', 'i', 'd', 0}};
+  array_t array = {8, {1, 2, 3}, {1, 2, 3, 4, 50}, {17, 47}, {{7, 2}, {3, 4}, {5, 6}}, "Sigrid"};
   array_t array_empty;
   memset(&array_empty, 0, sizeof(array_t));
-  test_struct((unsigned char *)&array, (unsigned char *)&array_empty, &array_body);
+  test_struct("array", (unsigned char *)&array, (unsigned char *)&array_empty, &array_body);
 
   return 0;
 }
