@@ -82,13 +82,13 @@ string: Hello world!
 
 To easy create the struct needed for the conversion a python script can be run.
 
-```cmd
+```
 python.exe ..\tools\struct2text.py example1.h -t ..\tools\types.json -o . -f . 
 ```
 
 Help for the script:
 
-```cmd
+```
 python.exe ..\tools\struct2text.py -h
 usage: struct2text.py [-h] [-o OUTPUTFOLDER] -t TYPES [-r] [-s STRUCTS]
                       [-f FOLDERS]
