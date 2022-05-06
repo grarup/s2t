@@ -65,7 +65,7 @@ example1_t example1;
 char       text[100] = "{\"u8\":8,\"string\":\"Hello world!\"}";
 char *     json      = text;
 int        length    = strlen(json);
-json                 = read_struct(json, &length, (unsigned char *)&example1, &example1_body);
+json                 = read_struct_from_json(json, &length, (unsigned char *)&example1, &example1_body);
 
 printf("u8: %i\n", example1.u8);
 printf("string: %s\n", example1.string);
@@ -82,13 +82,13 @@ string: Hello world!
 
 To easy create the struct needed for the conversion a python script can be run.
 
-```cmd
+```
 python.exe ..\tools\struct2text.py example1.h -t ..\tools\types.json -o . -f . 
 ```
 
 Help for the script:
 
-```cmd
+```
 python.exe ..\tools\struct2text.py -h
 usage: struct2text.py [-h] [-o OUTPUTFOLDER] -t TYPES [-r] [-s STRUCTS]
                       [-f FOLDERS]
