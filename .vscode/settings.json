@@ -1,5 +1,6 @@
 {
   "files.associations": {
     "struct2json.h": "c"
-  }
+  },
+  "cmake.configureOnOpen": false
 }

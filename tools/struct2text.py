@@ -197,7 +197,7 @@ def main():
     parser.add_argument("file", help="the file containing the struct")
     args = parser.parse_args()
 
-    convert(args.file, Types.parse_file(args.t), args.f, args.r, args.o)
+    convert(args.file, Types.parse_file(args.types), args.folders, args.recursive, args.outputfolder)
 
 
 if __name__ == "__main__":
