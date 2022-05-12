@@ -10,41 +10,53 @@
 #include "output/array_struct_s2t.h"
 #include "structs/very_simple_struct.h"
 #include "output/very_simple_struct_s2t.h"
+#include "structs/string_struct.h"
+#include "output/string_struct_s2t.h"
 #include "../src/struct2json.h"
 #include "../src/json2struct.h"
 #include "json-maker.h"
 #include "string.h"
 
-int test_struct(char * name, unsigned char * filledStructPointer, unsigned char * emptyStructPointer, structBody_t * body, char * expectedResult1, char * expectedResult2)
+int test_json2Struct(char * name, char * json, unsigned char * structPointer, structBody_t * body, char * expectedResult)
 {
-  char   text[1000];
-  int    length = sizeof(text);
-  char * json   = text;
-  int    result = 0;
+  char text[1000];
+  int  length = sizeof(text);
 
-  json = json_struct(json, &length, filledStructPointer, body, NULL);
-  json = json_end(json, &length);
-  printf("%s\n", name);
-  printf("struct to json\n");
-  printf("Expected: %s\n", text);
-  printf("Actually: %s\n", expectedResult1);
-  result = strncmp(text, expectedResult1, sizeof(text)) == 0;
-  printf("Result: %s\n\n", result ? "Pass" : "Failed");
+  length = strlen(json);
+  json   = read_struct_from_json(json, &length, structPointer, body);
 
   json   = text;
   length = sizeof(text);
-  json   = read_struct_from_json(json, &length, emptyStructPointer, body);
-
-  json   = text;
-  length = sizeof(text);
-  json   = json_struct(json, &length, emptyStructPointer, body, NULL);
+  json   = json_struct(json, &length, structPointer, body, NULL);
   json   = json_end(json, &length);
 
   printf("struct to json to struct to json\n");
-  printf("Expected: %s\n", text);
-  printf("Actually: %s\n", expectedResult2);
-  printf("Result: %s\n\n", strncmp(text, expectedResult2, sizeof(text)) == 0 ? "Pass" : "Failed");
-  return result && (strncmp(text, expectedResult2, sizeof(text)) == 0);
+  printf("Expected: %s\n", expectedResult);
+  printf("Actually: %s\n", text);
+  printf("Result: %s\n\n", strncmp(text, expectedResult, sizeof(text)) == 0 ? "Pass" : "Failed");
+  return (strncmp(text, expectedResult, sizeof(text)) == 0);
+}
+
+int test_struct2json(char * name, unsigned char * structPointer, char * json, int jsonMaxLength, structBody_t * body, char * expectedResult)
+{
+  int    length    = jsonMaxLength;
+  char * jsonStart = json;
+  json             = json_struct(json, &length, structPointer, body, NULL);
+  json             = json_end(json, &length);
+  printf("%s\n", name);
+  printf("struct to json\n");
+  printf("Expected: %s\n", expectedResult);
+  printf("Actually: %s\n", jsonStart);
+  int result = strncmp(jsonStart, expectedResult, jsonMaxLength) == 0;
+  printf("Result: %s\n\n", result ? "Pass" : "Failed");
+  return result;
+}
+
+int test_struct(char * name, unsigned char * filledStructPointer, unsigned char * emptyStructPointer, structBody_t * body, char * expectedResult1, char * expectedResult2)
+{
+  char json[1000];
+  test_struct2json(name, filledStructPointer, json, sizeof(json), body, expectedResult1);
+  test_json2Struct(name, json, emptyStructPointer, body, expectedResult2);
 }
 
 int main()
@@ -99,6 +111,27 @@ int main()
 
   result &= test_struct("array", (unsigned char *)&array, (unsigned char *)&array_empty, &array_body, array_result, array_result);
 
+  // String
+  string_t string_struct = {string, "1234"};
+  char     emptyString[30];
+  memset(emptyString, 0, sizeof(emptyString));
+  string_t empty_string_struct;
+  empty_string_struct.pointerToString = emptyString;
+
+  char * string_result = "{\"pointerToString\":\"Peter\",\"string\":\"1234\"}";
+
+  result &= test_struct("string", (unsigned char *)&string_struct, (unsigned char *)&empty_string_struct, &string_body, string_result, string_result);
+
+  // To long string
+  memset(&empty_string_struct, 0, sizeof(empty_string_struct));
+  memset(emptyString, 0, sizeof(emptyString));
+  empty_string_struct.pointerToString = emptyString;
+
+  char json[1000] = "{\"pointerToString\":\"Peter\",\"string\":\"123456789\"}";
+
+  result &= test_json2Struct("long string", json, (unsigned char *)&empty_string_struct, &string_body, string_result);
+
+  // Final result
   printf("Final result: %s\n", result ? "Passed" : "Failed");
 
   return result ? 0 : 1;

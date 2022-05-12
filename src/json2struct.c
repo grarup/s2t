@@ -73,7 +73,7 @@ static unsigned char * get_value_string(unsigned char * source, unsigned int * m
   return end + 1;
 }
 
-static unsigned char * read_value(unsigned char * source, unsigned int * maxLength, unsigned char * structPointer, types_t type, structBody_t * child)
+static unsigned char * read_value(unsigned char * source, unsigned int * maxLength, unsigned char * structPointer, types_t type, structBody_t * child, int count)
 {
   char * szValue;
   // printf("type %i\n", type);
@@ -168,8 +168,13 @@ static unsigned char * read_value(unsigned char * source, unsigned int * maxLeng
       {
         if (strncmp(szValue, "null", 4) != 0)
         {
-          // TODO check length if array.
-          strcpy((char *)structPointer, szValue);
+          if (count > 0)
+          {
+            strncpy((char *)structPointer, szValue, count);
+            ((char *)structPointer)[count - 1] = 0;
+          }
+          else
+            strcpy((char *)structPointer, szValue);
         }
       }
       break;
@@ -186,7 +191,7 @@ static unsigned char * read_array(unsigned char * source, unsigned int * maxLeng
 {
   if ((type & types_typeMask) == types_char)
   {
-    source = read_value(source, maxLength, *structPointer, types_sz, NULL);
+    source = read_value(source, maxLength, *structPointer, types_sz, NULL, count);
   }
   else
   {
@@ -194,7 +199,7 @@ static unsigned char * read_array(unsigned char * source, unsigned int * maxLeng
     source            = move_past(source, maxLength, '[');
     for (int i = 0; i < count; i++)
     {
-      source         = read_value(source, maxLength, *structPointer, type, child);
+      source         = read_value(source, maxLength, *structPointer, type, child, size);
       *structPointer = (unsigned char *)(*structPointer + size);
     }
   }
@@ -244,7 +249,7 @@ char * read_struct_from_json(char * source, unsigned int * maxLength, unsigned c
         source               = read_array(source, maxLength, &data, member->count, member->type, member->child);
       }
       else
-        source = read_value(source, maxLength, structPointer + member->offset, member->type, member->child);
+        source = read_value(source, maxLength, structPointer + member->offset, member->type, member->child, member->count);
     }
     else
     {
