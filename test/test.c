@@ -15,17 +15,21 @@
 #include "json-maker.h"
 #include "string.h"
 
-void test_struct(char * name, unsigned char * filledStructPointer, unsigned char * emptyStructPointer, structBody_t * body)
+int test_struct(char * name, unsigned char * filledStructPointer, unsigned char * emptyStructPointer, structBody_t * body, char * expectedResult1, char * expectedResult2)
 {
   char   text[1000];
   int    length = sizeof(text);
   char * json   = text;
+  int    result = 0;
 
   json = json_struct(json, &length, filledStructPointer, body, NULL);
   json = json_end(json, &length);
   printf("%s\n", name);
   printf("struct to json\n");
-  printf("%s\n\n", text);
+  printf("Expected: %s\n", text);
+  printf("Actually: %s\n", expectedResult1);
+  result = strncmp(text, expectedResult1, sizeof(text)) == 0;
+  printf("Result: %s\n\n", result ? "Pass" : "Failed");
 
   json   = text;
   length = sizeof(text);
@@ -37,26 +41,37 @@ void test_struct(char * name, unsigned char * filledStructPointer, unsigned char
   json   = json_end(json, &length);
 
   printf("struct to json to struct to json\n");
-  printf("%s\n\n", text);
+  printf("Expected: %s\n", text);
+  printf("Actually: %s\n", expectedResult2);
+  printf("Result: %s\n\n", strncmp(text, expectedResult2, sizeof(text)) == 0 ? "Pass" : "Failed");
+  return result && (strncmp(text, expectedResult2, sizeof(text)) == 0);
 }
 
 int main()
 {
-
+  int result = 1;
+  // Very simple
   very_simple_t very_simple = {8, 16, 32};
   very_simple_t very_simple_empty;
+  char *        very_simple_result = "{\"u8\":8,\"u16\":16,\"u32\":32}";
 
-  test_struct("very_simple", (unsigned char *)&very_simple, (unsigned char *)&very_simple_empty, &very_simple_body);
+  result &= test_struct("very_simple", (unsigned char *)&very_simple, (unsigned char *)&very_simple_empty, &very_simple_body, very_simple_result, very_simple_result);
 
+  // Simple
   simple_t simple = {8, 16, 32, -8, -16, -32, 'p', 3.14f, 2.27, 8};
   simple_t simple_empty;
+  char *   simple_result = "{\"u8\":8,\"u16\":16,\"u32\":32,\"i8\":-8,\"i16\":-16,\"i32\":-32,\"c\":\"p\",\"f32\":3.14,\"f64\":2.27,\"u8check\":8}";
 
-  test_struct("simple", (unsigned char *)&simple, (unsigned char *)&simple_empty, &simple_body);
+  result &= test_struct("simple", (unsigned char *)&simple, (unsigned char *)&simple_empty, &simple_body, simple_result, simple_result);
 
+  // Nested
   nest_t nest = {8, {8, 16, 32, -16, -32, 32, 'c', 32.1f, 64.5, 8}};
   nest_t nest_empty;
-  test_struct("nest", (unsigned char *)&nest, (unsigned char *)&nest_empty, &nest_body);
+  char * nest_result = "{\"u8\":8,\"simple\":{\"u8\":8,\"u16\":16,\"u32\":32,\"i8\":-16,\"i16\":-32,\"i32\":32,\"c\":\"c\",\"f32\":32.1,\"f64\":64.5,\"u8check\":8}}";
 
+  result &= test_struct("nest", (unsigned char *)&nest, (unsigned char *)&nest_empty, &nest_body, nest_result, nest_result);
+
+  // Pointer
   char           string[] = "Peter";
   unsigned short s        = 50;
   int            i        = 100;
@@ -70,12 +85,21 @@ int main()
   pointer_empty.szString = string_empty;
   pointer_empty.pu16     = &s_empty;
   pointer_empty.pi32     = &i_empty;
-  test_struct("pointer", (unsigned char *)&pointer, (unsigned char *)&pointer_empty, &simple_point_body);
+  char * pointer_result1 = "{\"szString\":\"Peter\",\"pu16\":null,\"pi32\":100,\"i32\":200}";
+  char * pointer_result2 = "{\"szString\":\"Peter\",\"pu16\":2,\"pi32\":100,\"i32\":200}";
 
+  result &= test_struct("pointer", (unsigned char *)&pointer, (unsigned char *)&pointer_empty, &simple_point_body, pointer_result1, pointer_result2);
+
+  // Array
   array_t array = {8, {1, 2, 3}, {1, 2, 3, 4, 50}, {17, 47}, {{7, 2}, {3, 4}, {5, 6}}, "Sigrid"};
   array_t array_empty;
   memset(&array_empty, 0, sizeof(array_t));
-  test_struct("array", (unsigned char *)&array, (unsigned char *)&array_empty, &array_body);
 
-  return 0;
+  char * array_result = "{\"u8notarray\":8,\"u8\":[1,2,3],\"u16\":[1,2,3,4,50],\"u32\":[17,47],\"m_u32\":[[7,2],[3,4],[5,6]],\"string\":\"Sigrid\"}";
+
+  result &= test_struct("array", (unsigned char *)&array, (unsigned char *)&array_empty, &array_body, array_result, array_result);
+
+  printf("Final result: %s\n", result ? "Passed" : "Failed");
+
+  return result ? 0 : 1;
 }

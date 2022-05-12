@@ -50,5 +50,5 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
-test/output/*
+test/output/*.*
 test/output/.sconsign.dblite
