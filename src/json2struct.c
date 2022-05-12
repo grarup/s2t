@@ -81,17 +81,41 @@ static inline char * move_past_divider(char * source, unsigned int * lengthRemai
 static char * move_past_end(char * source, unsigned int * lengthRemaining)
 {
   int braced_count = 0;
-  while (*lengthRemaining > 1 && (braced_count > 0 || !(*source == ',' || *source == '}')))
+  int array_count  = 0;
+  while (*lengthRemaining > 1 && (braced_count > 0 || array_count > 0 || !(*source == ',' || *source == '}' || *source == ']')))
   {
     if (*source == '{')
       braced_count++;
     else if (*source == '}')
       braced_count--;
+    if (*source == '[')
+      array_count++;
+    else if (*source == ']')
+      array_count--;
     source++;
     *lengthRemaining--;
   }
   *lengthRemaining--;
   return source + 1;
+}
+
+/**
+ * @brief move past the value of the element
+ *
+ * @param source start pointer
+ * @param lengthRemaining length remaining of string
+ * @return char* pointer to the position after the charactor
+ */
+static char * move_past_value(char * source, unsigned int * lengthRemaining)
+{
+  while (*lengthRemaining > 1 && (!(*source == ',' || *source == '{' || *source == '[')))
+  {
+    source++;
+    *lengthRemaining--;
+  }
+  if (*lengthRemaining > 0)
+    return move_past_end(source, lengthRemaining);
+  return source;
 }
 
 /**
@@ -370,7 +394,7 @@ char * read_struct_from_json(char * source, unsigned int * lengthRemaining, unsi
     }
     else
     {
-      // TODO eat the rest.
+      source = move_past_value(source, lengthRemaining);
     }
   } while (*lengthRemaining > 0);
 

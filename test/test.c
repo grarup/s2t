@@ -131,6 +131,16 @@ int main()
 
   result &= test_json2Struct("long string", json, (unsigned char *)&empty_string_struct, &string_body, string_result);
 
+  // Extra json
+  memset(&empty_string_struct, 0, sizeof(empty_string_struct));
+  memset(emptyString, 0, sizeof(emptyString));
+  empty_string_struct.pointerToString = emptyString;
+
+  char json_extra[1000] = "{\"pointerToString\":\"Peter\",\"extra_int\":1,\"extra_struct\":{\"pointerToString\":\"Hmm\"},\"extra_array\":[1,2,3],\"string\":\"1234\"}";
+  printf("%s\n", json_extra);
+
+  result &= test_json2Struct("extra json", json_extra, (unsigned char *)&empty_string_struct, &string_body, string_result);
+
   // Final result
   printf("Final result: %s\n", result ? "Passed" : "Failed");
 
