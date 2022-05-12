@@ -17,7 +17,7 @@
 #include "json-maker.h"
 #include "string.h"
 
-int test_json2Struct(char * name, char * json, unsigned char * structPointer, structBody_t * body, char * expectedResult)
+int test_json2Struct(char * json, unsigned char * structPointer, structBody_t * body, char * expectedResult)
 {
   char text[1000];
   int  length = sizeof(text);
@@ -30,20 +30,19 @@ int test_json2Struct(char * name, char * json, unsigned char * structPointer, st
   json   = json_struct(json, &length, structPointer, body, NULL);
   json   = json_end(json, &length);
 
-  printf("struct to json to struct to json\n");
+  printf("json to struct to json\n");
   printf("Expected: %s\n", expectedResult);
   printf("Actually: %s\n", text);
   printf("Result: %s\n\n", strncmp(text, expectedResult, sizeof(text)) == 0 ? "Pass" : "Failed");
   return (strncmp(text, expectedResult, sizeof(text)) == 0);
 }
 
-int test_struct2json(char * name, unsigned char * structPointer, char * json, int jsonMaxLength, structBody_t * body, char * expectedResult)
+int test_struct2json(unsigned char * structPointer, char * json, int jsonMaxLength, structBody_t * body, char * expectedResult)
 {
   int    length    = jsonMaxLength;
   char * jsonStart = json;
   json             = json_struct(json, &length, structPointer, body, NULL);
   json             = json_end(json, &length);
-  printf("%s\n", name);
   printf("struct to json\n");
   printf("Expected: %s\n", expectedResult);
   printf("Actually: %s\n", jsonStart);
@@ -55,8 +54,9 @@ int test_struct2json(char * name, unsigned char * structPointer, char * json, in
 int test_struct(char * name, unsigned char * filledStructPointer, unsigned char * emptyStructPointer, structBody_t * body, char * expectedResult1, char * expectedResult2)
 {
   char json[1000];
-  test_struct2json(name, filledStructPointer, json, sizeof(json), body, expectedResult1);
-  test_json2Struct(name, json, emptyStructPointer, body, expectedResult2);
+  printf("--- %s ---\n", name);
+  test_struct2json(filledStructPointer, json, sizeof(json), body, expectedResult1);
+  test_json2Struct(json, emptyStructPointer, body, expectedResult2);
 }
 
 int main()
@@ -84,7 +84,7 @@ int main()
   result &= test_struct("nest", (unsigned char *)&nest, (unsigned char *)&nest_empty, &nest_body, nest_result, nest_result);
 
   // Pointer
-  char           string[] = "Peter";
+  char           string[] = "Peter \"the great\" Grarup";
   unsigned short s        = 50;
   int            i        = 100;
   simple_point_t pointer  = {string, NULL, &i, 200};
@@ -93,12 +93,13 @@ int main()
   int            i_empty = 3;
 
   memset(&pointer_empty, 0, sizeof(simple_point_t));
-  char string_empty[10];
+  char string_empty[50];
+  memset(string_empty, 0, sizeof(string_empty));
   pointer_empty.szString = string_empty;
   pointer_empty.pu16     = &s_empty;
   pointer_empty.pi32     = &i_empty;
-  char * pointer_result1 = "{\"szString\":\"Peter\",\"pu16\":null,\"pi32\":100,\"i32\":200}";
-  char * pointer_result2 = "{\"szString\":\"Peter\",\"pu16\":2,\"pi32\":100,\"i32\":200}";
+  char * pointer_result1 = "{\"szString\":\"Peter \\\"the great\\\" Grarup\",\"pu16\":null,\"pi32\":100,\"i32\":200}";
+  char * pointer_result2 = "{\"szString\":\"Peter \\\"the great\\\" Grarup\",\"pu16\":2,\"pi32\":100,\"i32\":200}";
 
   result &= test_struct("pointer", (unsigned char *)&pointer, (unsigned char *)&pointer_empty, &simple_point_body, pointer_result1, pointer_result2);
 
@@ -118,7 +119,7 @@ int main()
   string_t empty_string_struct;
   empty_string_struct.pointerToString = emptyString;
 
-  char * string_result = "{\"pointerToString\":\"Peter\",\"string\":\"1234\"}";
+  char * string_result = "{\"pointerToString\":\"Peter \\\"the great\\\" Grarup\",\"string\":\"1234\"}";
 
   result &= test_struct("string", (unsigned char *)&string_struct, (unsigned char *)&empty_string_struct, &string_body, string_result, string_result);
 
@@ -127,19 +128,22 @@ int main()
   memset(emptyString, 0, sizeof(emptyString));
   empty_string_struct.pointerToString = emptyString;
 
-  char json[1000] = "{\"pointerToString\":\"Peter\",\"string\":\"123456789\"}";
+  char json[1000] = "{\"pointerToString\":\"Peter \\\"the great\\\" Grarup\",\"string\":\"123456789\"}";
 
-  result &= test_json2Struct("long string", json, (unsigned char *)&empty_string_struct, &string_body, string_result);
+  printf("--- long string ---\n");
+  printf("json to parse: %s\n", json);
+  result &= test_json2Struct(json, (unsigned char *)&empty_string_struct, &string_body, string_result);
 
   // Extra json
   memset(&empty_string_struct, 0, sizeof(empty_string_struct));
   memset(emptyString, 0, sizeof(emptyString));
   empty_string_struct.pointerToString = emptyString;
 
-  char json_extra[1000] = "{\"pointerToString\":\"Peter\",\"extra_int\":1,\"extra_struct\":{\"pointerToString\":\"Hmm\"},\"extra_array\":[1,2,3],\"string\":\"1234\"}";
-  printf("%s\n", json_extra);
+  char json_extra[1000] = "{\"pointerToString\":\"Peter \\\"the great\\\" Grarup\",\"extra_int\":1,\"extra_struct\":{\"pointerToString\":\"Hmm\"},\"extra_array\":[1,2,3],\"string\":\"1234\"}";
 
-  result &= test_json2Struct("extra json", json_extra, (unsigned char *)&empty_string_struct, &string_body, string_result);
+  printf("--- extra json ---\n");
+  printf("json to parse: %s\n", json_extra);
+  result &= test_json2Struct(json_extra, (unsigned char *)&empty_string_struct, &string_body, string_result);
 
   // Final result
   printf("Final result: %s\n", result ? "Passed" : "Failed");

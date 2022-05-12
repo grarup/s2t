@@ -24,6 +24,7 @@
 #include "json2struct.h"
 #include "string.h"
 #include "stdlib.h"
+#include "stdbool.h"
 
 /**
  * @brief move a char pointer past a character
@@ -141,6 +142,8 @@ static char * strnchr(char * source, unsigned int lengthRemaining, char c)
 /**
  * @brief returns a pointer to the start of a string and zero terminates it.
  *
+ * it converts escaped characters and ignors escaped "
+ *
  * @param source pointer to string
  * @param remainingLength length left of string
  * @param string pointer to pointer to put the string in.
@@ -153,12 +156,50 @@ static char * get_string(char * source, unsigned int * remainingLength, char ** 
   if (*string != NULL)
   {
     *string += 1;
-    *remainingLength -= ((unsigned int)source - (unsigned int)*string);
-    char * end = strnchr(*string, *remainingLength, '"');
-    *end       = 0;
-    *remainingLength -= (*string - end) + 1;
-    return end + 1;
+    bool   escaped = false;
+    int    move    = 0;
+    char * c       = *string;
+    *remainingLength -= ((unsigned int)*string - (unsigned int)source);
+    while (*remainingLength > 0 && (escaped || *c != '"'))
+    {
+      if (escaped)
+      {
+        switch (*c)
+        {
+          case 'n':
+            *c = '\n';
+            move++; /* code */
+            break;
+          case 't':
+            *c = '\t';
+            move++; /* code */
+            break;
+          // TODO add support for utf8 \x
+          case '\\':
+          case '"':
+            move++; /* code */
+            break;
+          default:
+            // show the unhandled escapes
+            break;
+        }
+        escaped = false;
+      }
+      else
+      {
+        if (*c == '\\')
+          escaped = true;
+      }
+      if (move)
+        *(c - move) = *c;
+      *remainingLength -= 1;
+      c++;
+    }
+    *remainingLength -= 1;
+    *(c - move) = 0;
+    return c + 1;
   }
+  *remainingLength = 0;
   return source;
 }
 
