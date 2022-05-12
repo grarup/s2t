@@ -1,5 +1,5 @@
 import enum
-import re
+import regex
 import argparse
 
 from numpy import append
@@ -56,20 +56,27 @@ def get_struct_name(name: str, bodies: typing.List[StructBody]) -> typing.Tuple[
 
 def get_structs(fileName: str, types: Types, folders: typing.List[str], used: bool = False) -> typing.List[StructBody]:
     file = open(fileName, "r")
-    text = file.read().replace("\n", "")
-    hfiles = re.findall("#include *\"([^\"]*)\"", text)
+    text = file.read()
+    #remove comments
+    text = regex.sub(r"/\*(?:(?!/\*|\*/).|(?R))*\*/", "", text, flags=regex.MULTILINE)
+    text = regex.sub(r"//.*\n", "", text, flags=regex.MULTILINE)
+    text = text.replace("\n", " ")
+    text = regex.sub(r" +", " ", text)
+    hfiles = regex.findall(r"#include *[\"<]([^\"]*)[\">]", text)
+    print(text)
+    print(hfiles)
     structBodies: typing.List[StructBody] = []
     for hfile in hfiles:
         structBodies.extend(get_structs(find_file(hfile, folders), types, folders))
         print(f"h file: {find_file(hfile, folders)}")
 
-    structs = re.findall("(?:typedef) ?struct ?([^{]*){([^{]*)}([^;]*);", text)
+    structs = regex.findall("(?:typedef) ?struct ?([^{]*){([^{]*)}([^;]*);", text)
     for struct in structs:
         structBody = StructBody(name=struct[0], typedef_name=struct[2].strip(), file_name=fileName, used=used)
         structBodies.append(structBody)
     for struct in structs:
         structBody = get_struct(struct[0], structBodies)
-        entries = re.findall(" *([^;\*]*) (\*)? *([^;]*);", struct[1])
+        entries = regex.findall(" *([^;\*]*) (\*)? *([^;]*);", struct[1])
         for entry in entries:
             structMember = StructMember()
             type = types.get_type(entry[0].strip())
@@ -90,14 +97,14 @@ def get_structs(fileName: str, types: Types, folders: typing.List[str], used: bo
             if (arrayCount == 0):
                 structMember.name = entry[2]
             elif (arrayCount == 1):
-                countstr = re.findall("\[(.*)\]", entry[2])
+                countstr = regex.findall("\[(.*)\]", entry[2])
                 structMember.count = int(countstr[0])
-                structMember.name = re.findall("([^\[]*)", entry[2])[0]
+                structMember.name = regex.findall("([^\[]*)", entry[2])[0]
                 structMember.type += ' | types_array'
             else:
-                countstr = re.findall("\[([^\[]*)\]", entry[2])
+                countstr = regex.findall("\[([^\[]*)\]", entry[2])
                 structMember.count = len(countstr)
-                structMember.name = re.findall("([^\[]*)", entry[2])[0]
+                structMember.name = regex.findall("([^\[]*)", entry[2])[0]
                 structMember.arrayLengths.extend(countstr)
                 structMember.type += ' | types_multiArray'
 
@@ -110,6 +117,8 @@ def find_file(fileName: str, folders: typing.List[str]) -> str:
     for folder in folders:
         if (os.path.exists(os.path.join(folder, fileName))):
             return os.path.join(folder, fileName)
+    print(f"Can't find file {fileName}")
+    exit(0)
 
 
 def convert(file_name: str, types: Types, folders: typing.List[str], recursive: bool = False, outputFolder: str = None):
