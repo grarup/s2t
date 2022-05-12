@@ -1,8 +1,43 @@
+/*
+  <https://github.com/grarup/s2t>
+
+  Licensed under the MIT License <http://opensource.org/licenses/MIT>.
+  SPDX-License-Identifier: MIT
+  Copyright (c) 2022 Peter Grarup <grarup@gmail.com>.
+  Permission is hereby  granted, free of charge, to any  person obtaining a copy
+  of this software and associated  documentation files (the "Software"), to deal
+  in the Software  without restriction, including without  limitation the rights
+  to  use, copy,  modify, merge,  publish, distribute,  sublicense, and/or  sell
+  copies  of  the Software,  and  to  permit persons  to  whom  the Software  is
+  furnished to do so, subject to the following conditions:
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+  THE SOFTWARE  IS PROVIDED "AS  IS", WITHOUT WARRANTY  OF ANY KIND,  EXPRESS OR
+  IMPLIED,  INCLUDING BUT  NOT  LIMITED TO  THE  WARRANTIES OF  MERCHANTABILITY,
+  FITNESS FOR  A PARTICULAR PURPOSE AND  NONINFRINGEMENT. IN NO EVENT  SHALL THE
+  AUTHORS  OR COPYRIGHT  HOLDERS  BE  LIABLE FOR  ANY  CLAIM,  DAMAGES OR  OTHER
+  LIABILITY, WHETHER IN AN ACTION OF  CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE  OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+*/
+
 #include "struct2json.h"
 #include "string.h"
 #include "json-maker.h"
 
-char * json_member(char * target, unsigned int * targetMaxLength, char * name, unsigned char * data, types_t type, void * child)
+/**
+ * @brief generates json for a struct member
+ *
+ * @param distination a pointer to the char array where the json should be placed
+ * @param destinationRemainingLength pointer to a variable containing the max number of
+ *                                   characters left in the distination buffer
+ * @param name name of the member
+ * @param data pointer to data for member
+ * @param type type of member
+ * @param child child body if type is struct.
+ * @return char* pointer to the null character of the destination string.
+ */
+char * json_member(char * destination, unsigned int * destinationRemainingLength, char * name, unsigned char * data, types_t type, void * child)
 {
   unsigned char * valuePointer = data;
   if (type & types_pointer)
@@ -17,87 +52,115 @@ char * json_member(char * target, unsigned int * targetMaxLength, char * name, u
   switch (type & types_typeMask)
   {
     case types_u8:
-      target = json_uint(target, name, *valuePointer, targetMaxLength);
+      destination = json_uint(destination, name, *valuePointer, destinationRemainingLength);
       break;
     case types_u16:
-      target = json_uint(target, name, *((unsigned short *)valuePointer), targetMaxLength);
+      destination = json_uint(destination, name, *((unsigned short *)valuePointer), destinationRemainingLength);
       break;
     case types_u32:
-      target = json_uint(target, name, *((unsigned int *)valuePointer), targetMaxLength);
+      destination = json_uint(destination, name, *((unsigned int *)valuePointer), destinationRemainingLength);
       break;
     case types_i8:
-      target = json_int(target, name, *((char *)valuePointer), targetMaxLength);
+      destination = json_int(destination, name, *((char *)valuePointer), destinationRemainingLength);
       break;
     case types_i16:
-      target = json_int(target, name, *((short *)valuePointer), targetMaxLength);
+      destination = json_int(destination, name, *((short *)valuePointer), destinationRemainingLength);
       break;
     case types_i32:
-      target = json_int(target, name, *((int *)valuePointer), targetMaxLength);
+      destination = json_int(destination, name, *((int *)valuePointer), destinationRemainingLength);
       break;
     case types_f32:
-      target = json_double(target, name, *((float *)valuePointer), targetMaxLength);
+      destination = json_double(destination, name, *((float *)valuePointer), destinationRemainingLength);
       break;
     case types_f64:
-      target = json_double(target, name, *((double *)valuePointer), targetMaxLength);
+      destination = json_double(destination, name, *((double *)valuePointer), destinationRemainingLength);
       break;
     case types_char:
-      target = json_nstr(target, name, valuePointer, 1, targetMaxLength);
+      destination = json_nstr(destination, name, valuePointer, 1, destinationRemainingLength);
       break;
     case types_sz:
-      target = json_str(target, name, valuePointer, targetMaxLength);
+      destination = json_str(destination, name, valuePointer, destinationRemainingLength);
       break;
     case types_struct:
-      target = json_struct(target, targetMaxLength, valuePointer, child, name);
+      destination = json_struct(destination, destinationRemainingLength, valuePointer, child, name);
       break;
     default:
-      target = json_null(target, name, targetMaxLength);
+      destination = json_null(destination, name, destinationRemainingLength);
       break;
   }
-  return target;
+  return destination;
 }
 
-static char * json_array(char * target, unsigned int * targetMaxLength, char * name, unsigned char ** data, int count, types_t type, void * child)
+/**
+ * @brief generates json form an array
+ *
+ * @param distination a pointer to the char array where the json should be placed
+ * @param destinationRemainingLength pointer to a variable containing the max number of
+ *                                   characters left in the distination buffer
+ * @param name name of the member
+ * @param data pointer to data for member
+ * @param count number of elements in struct
+ * @param type type of member
+ * @param child child body if type is struct.
+ * @return char* pointer to the null character of the destination string.
+ */
+static char * json_array(char * destination, unsigned int * destinationRemainingLength, char * name, unsigned char ** data, int count, types_t type, void * child)
 {
   if ((type & types_typeMask) == types_char)
   {
-    target = json_nstr(target, name, *data, count, targetMaxLength);
-    *data  = (unsigned char *)(*data + count);
-    return target;
+    destination = json_nstr(destination, name, *data, count, destinationRemainingLength);
+    *data       = (unsigned char *)(*data + count);
+    return destination;
   }
-  target = json_arrOpen(target, name, targetMaxLength);
+  destination = json_arrOpen(destination, name, destinationRemainingLength);
   for (int i = 0; i < count; i++)
   {
-    target            = json_member(target, targetMaxLength, NULL, *data, type, child);
+    destination       = json_member(destination, destinationRemainingLength, NULL, *data, type, child);
     unsigned int size = getSize(type, child);
     *data             = (unsigned char *)(*data + size);
   }
-  target = json_arrClose(target, targetMaxLength);
-  return target;
+  destination = json_arrClose(destination, destinationRemainingLength);
+  return destination;
 }
 
-char * json_multi_array(char * target, unsigned int * targetMaxLength, char * name, unsigned char ** arrayPointer, int count, types_t type, void * child, unsigned int * arrayDim)
+/**
+ * @brief generates json for a mulit array
+ *
+ * @param distination a pointer to the char array where the json should be placed
+ * @param destinationRemainingLength pointer to a variable containing the max number of
+ *                                   characters left in the distination buffer
+ * @param name name of the member
+ * @param arrayPointer pointer to a pointer of where the data for the array is stored
+ *                     this is increased by the amount that is read
+ * @param count number of dimentions of the mulit array
+ * @param type type of member
+ * @param child child body if type is struct.
+ * @param arrayDim array of length for the array
+ * @return char* pointer to the null character of the destination string.
+ */
+char * json_multi_array(char * destination, unsigned int * destinationRemainingLength, char * name, unsigned char ** arrayPointer, int count, types_t type, void * child, unsigned int * arrayDim)
 {
   if (count == 1)
   {
-    target = json_array(target, targetMaxLength, NULL, arrayPointer, *arrayDim, type, child);
+    destination = json_array(destination, destinationRemainingLength, NULL, arrayPointer, *arrayDim, type, child);
   }
   else
   {
-    target = json_arrOpen(target, name, targetMaxLength);
+    destination = json_arrOpen(destination, name, destinationRemainingLength);
     for (size_t i = 0; i < *arrayDim; i++)
     {
-      target = json_multi_array(target, targetMaxLength, NULL, arrayPointer, count - 1, type, child, arrayDim + 1);
+      destination = json_multi_array(destination, destinationRemainingLength, NULL, arrayPointer, count - 1, type, child, arrayDim + 1);
     }
 
-    target = json_arrClose(target, targetMaxLength);
+    destination = json_arrClose(destination, destinationRemainingLength);
   }
-  return target;
+  return destination;
 }
 
-char * json_struct(char * target, unsigned int * targetMaxLength, unsigned char * structPointer, structBody_t * structBody, char * name)
+char * json_struct(char * destination, unsigned int * destinationRemainingLength, unsigned char * structPointer, structBody_t * structBody, char * name)
 {
   unsigned char * basePointer = structPointer;
-  target                      = json_objOpen(target, name, targetMaxLength);
+  destination                 = json_objOpen(destination, name, destinationRemainingLength);
   unsigned char * data        = structPointer;
   for (unsigned int i = 0; i < structBody->count; i++)
   {
@@ -105,16 +168,16 @@ char * json_struct(char * target, unsigned int * targetMaxLength, unsigned char 
     unsigned char *  data   = (unsigned char *)(basePointer + member->offset);
     if (member->type & types_multiArray)
     {
-      target = json_multi_array(target, targetMaxLength, member->name, &data, member->multi->count, member->type & types_typeMask, NULL, member->multi->lengths);
+      destination = json_multi_array(destination, destinationRemainingLength, member->name, &data, member->multi->count, member->type & types_typeMask, NULL, member->multi->lengths);
     }
     else if (member->type & types_array)
     {
-      target = json_array(target, targetMaxLength, member->name, &data, member->count, member->type, member->child);
+      destination = json_array(destination, destinationRemainingLength, member->name, &data, member->count, member->type, member->child);
     }
     else
     {
-      target = json_member(target, targetMaxLength, member->name, data, member->type, member->child);
+      destination = json_member(destination, destinationRemainingLength, member->name, data, member->type, member->child);
     }
   }
-  target = json_objClose(target, targetMaxLength);
+  destination = json_objClose(destination, destinationRemainingLength);
 }

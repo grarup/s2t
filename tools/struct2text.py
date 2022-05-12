@@ -166,7 +166,7 @@ def convert(file_name: str, types: Types, folders: typing.List[str], recursive: 
             c_contents[output_file_name] += "};\n\n"
             h_contents[output_file_name] += f"extern structBody_t {structBody.name if (structBody.name != '') else structBody.typedef_name}_body;\n"
             c_contents[output_file_name] += f"structBody_t {structBody.name if (structBody.name != '') else structBody.typedef_name}_body = {{\n"
-            c_contents[output_file_name] += f"\t\"{structBody.name if (structBody.name != '') else structBody.typedef_name}\",\n"
+            # c_contents[output_file_name] += f"\t\"{structBody.name if (structBody.name != '') else structBody.typedef_name}\",\n"
             c_contents[output_file_name] += f"\t{structBody.count},\n"
             if (structBody.name != ""):
                 c_contents[output_file_name] += f"\tsizeof(struct {structBody.name}),\n"
