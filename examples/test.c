@@ -1,4 +1,3 @@
-#define NOMINMAX
 #include <stdio.h>
 #include "struct2json.h"
 #include "json2struct.h"

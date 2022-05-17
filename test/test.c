@@ -1,4 +1,3 @@
-#define NOMINMAX
 #include <stdio.h>
 #include "structs/simple_struct.h"
 #include "output/simple_struct_s2t.h"
